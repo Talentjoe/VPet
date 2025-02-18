@@ -40,6 +40,14 @@ namespace VPet_Simulator.Core
         {
             Say(text, Core.Graph.FindName(GraphType.Say), force, desc);
         }
+
+        /// <summary>
+        /// 说话,使用随机表情
+        /// </summary>
+        public void SayRnd(Action<string> text, bool force = false, string desc = null)
+        {
+            Say(text, Core.Graph.FindName(GraphType.Say), force, desc);
+        }
         /// <summary>
         /// 说话
         /// </summary>
@@ -52,6 +60,39 @@ namespace VPet_Simulator.Core
             Task.Run(() =>
             {
                 OnSay?.Invoke(text);
+                if (force || !string.IsNullOrWhiteSpace(graphname) && DisplayType.Type == GraphType.Default)//这里不使用idle是因为idle包括学习等
+                    Display(graphname, AnimatType.A_Start, () =>
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            MsgBar.Show(Core.Save.Name, text, graphname, (string.IsNullOrWhiteSpace(desc) ? null :
+                                new TextBlock() { Text = desc, FontSize = 20, ToolTip = desc, HorizontalAlignment = HorizontalAlignment.Right }));
+                        });
+                        DisplayBLoopingForce(graphname);
+                    });
+                else
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        MsgBar.Show(Core.Save.Name, text, graphname, msgcontent: (string.IsNullOrWhiteSpace(desc) ? null :
+                            new TextBlock() { Text = desc, FontSize = 20, ToolTip = desc, HorizontalAlignment = HorizontalAlignment.Right }));
+                    });
+                }
+            });
+        }
+
+        /// <summary>
+        /// 说话
+        /// </summary>
+        /// <param name="text">说话内容</param>
+        /// <param name="graphname">图像名</param>
+        /// <param name="desc">描述</param>
+        /// <param name="force">强制显示图像</param>
+        public void Say(Action<string> text, string graphname = null, bool force = false, string desc = null)
+        {
+            Task.Run(() =>
+            {
+                OnSay?.Invoke("");
                 if (force || !string.IsNullOrWhiteSpace(graphname) && DisplayType.Type == GraphType.Default)//这里不使用idle是因为idle包括学习等
                     Display(graphname, AnimatType.A_Start, () =>
                     {

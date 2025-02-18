@@ -90,6 +90,22 @@ namespace VPet_Simulator.Windows.Interface
                 Next();
             }
         }
+
+        public void DisplayThinkToSayRnd(Action<string> text, string desc = null)
+        {
+            var think = MainPlugin.MW.Core.Graph.FindGraphs("think", AnimatType.C_End, MainPlugin.MW.Core.Save.Mode);
+            
+            Action Next = () => { MainPlugin.MW.Main.SayRnd(text, true, desc); };
+            if (think.Count > 0)
+            {
+                MainPlugin.MW.Main.SayRnd(text, true, desc);
+                MainPlugin.MW.Main.Display(think[Function.Rnd.Next(think.Count)], Next);
+            }
+            else
+            {
+                Next();
+            }
+        } 
         /// <summary>
         /// 聊天设置
         /// </summary>

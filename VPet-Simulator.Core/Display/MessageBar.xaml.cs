@@ -21,6 +21,9 @@ namespace VPet_Simulator.Core
         /// <param name="graphname">图像名</param>
         /// <param name="msgcontent">消息框内容</param>
         void Show(string name, string text, string graphname = null, UIElement msgcontent = null);
+
+        void Show(string name, Action<string> text, string graphname = null, UIElement msgcontent = null);
+
         /// <summary>
         /// 强制关闭
         /// </summary>
@@ -164,6 +167,47 @@ namespace VPet_Simulator.Core
             }
         }
 
+        private Action<string> textUpdateAction;
+        /// <summary>
+        /// 显示消息
+        /// </summary>
+        /// <param name="name">名字</param>
+        /// <param name="text">内容</param>
+        public void Show(string name, Action<string> text, string graphname = null, UIElement msgcontent = null)
+        {
+            if (m.UIGrid.Children.IndexOf(this) != m.UIGrid.Children.Count - 1)
+            {
+                Panel.SetZIndex(this, m.UIGrid.Children.Count - 1);
+            }
+            MessageBoxContent.Children.Clear();
+            TText.Text = "";
+            LName.Content = name;
+            textUpdateAction = text ?? throw new ArgumentNullException();
+            textUpdateAction += (msg) => StreamText(msg);
+            timeleft = 30;
+            ShowTimer.Stop(); EndTimer.Start(); CloseTimer.Stop();
+            this.Visibility = Visibility.Visible;
+            Opacity = .8;
+            graphName = graphname;
+            if (msgcontent != null)
+            {
+                MessageBoxContent.Children.Add(msgcontent);
+            }
+        }
+
+        public void StreamText(string text)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                TText.Text += text;
+            });
+            outputtext.AddRange(text.ToList());
+            ShowTimer.Stop(); EndTimer.Stop(); CloseTimer.Stop();
+            this.Visibility = Visibility.Visible;
+            Opacity = .8;
+            EndTimer.Start();
+        }
+
         public void Border_MouseEnter(object sender, MouseEventArgs e)
         {
             EndTimer.Stop();
@@ -214,7 +258,7 @@ namespace VPet_Simulator.Core
 
         private void MenuItemCopy_Click(object sender, RoutedEventArgs e)
         {
-            Clipboard.SetText(TText.Text);
+            Clipboard.SetText(outputtext.ToString());
         }
 
         private void MenuItemClose_Click(object sender, RoutedEventArgs e)
